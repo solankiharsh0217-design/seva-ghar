@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useScrollPosition } from '../../hooks/useScrollReveal';
+import { useAuth } from '../../context/AuthContext';
+import LoginModal from '../common/LoginModal';
 
 const NAV_ITEMS = [
   { label: 'Home', path: '/' },
@@ -13,7 +15,9 @@ const NAV_ITEMS = [
 export default function Navbar({ onBooking }) {
   const scrollY = useScrollPosition();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
 
   const navLinkStyle = ({ isActive }) => ({
     fontSize: 14,
@@ -75,7 +79,21 @@ export default function Navbar({ onBooking }) {
 
           {/* CTA Buttons */}
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            <button className="btn btn--outline btn--small hide-mobile">Login</button>
+            {isAuthenticated ? (
+              <button 
+                className="btn btn--outline btn--small hide-mobile"
+                onClick={() => navigate('/bookings')}
+              >
+                📋 My Bookings
+              </button>
+            ) : (
+              <button 
+                className="btn btn--outline btn--small hide-mobile"
+                onClick={() => setShowLogin(true)}
+              >
+                Login
+              </button>
+            )}
             <button
               className="btn btn--primary btn--small"
               onClick={() => onBooking('general')}
@@ -144,6 +162,8 @@ export default function Navbar({ onBooking }) {
           .show-mobile-btn { display: flex !important; }
         }
       `}</style>
+
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </>
   );
 }

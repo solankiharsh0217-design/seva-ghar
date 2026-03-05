@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
+import { db } from '../../firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { SERVICES, BAHADURGARH_AREAS } from '../../data/services';
 
+const API_BASE = "https://us-central1-sevaghar.cloudfunctions.net/api";
+
 export default function BookingModal({ type = 'general', onClose }) {
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     service: type !== 'general' && type !== 'corporate' && type !== 'materials' ? type : '',
     customerType: 'home',
     area: '',
+    address: '',
     notes: '',
   });
 
@@ -18,10 +24,42 @@ export default function BookingModal({ type = 'general', onClose }) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
-    // Future: API integration
-    alert('Booking submitted! Hum aapko jaldi call karenge.');
-    onClose();
+  const handleSubmit = async () => {
+    if (!formData.phone || !formData.area) {
+      alert('Please fill in required fields');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const payload = {
+        name: formData.name || '',
+        phone: formData.phone,
+        service: formData.service || 'general',
+        subService: '',
+        customerType: formData.customerType,
+        area: formData.area,
+        address: formData.address || '',
+        scheduledDate: new Date().toISOString(),
+        scheduledTime: '10:00 AM',
+        notes: formData.notes || '',
+        status: 'pending',
+        paymentStatus: 'pending',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      };
+
+      await addDoc(collection(db, 'bookings'), payload);
+
+      alert('Booking submitted! Hum aapko jaldi call karenge. 📞');
+      onClose();
+    } catch (error) {
+      console.error('Booking error:', error);
+      alert('Booking create nahi ho paya. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -120,6 +158,16 @@ export default function BookingModal({ type = 'general', onClose }) {
           </div>
 
           <div>
+            <label className="label">Full Address</label>
+            <input
+              className="input"
+              placeholder="House No., Street, Landmark"
+              value={formData.address}
+              onChange={(e) => handleChange('address', e.target.value)}
+            />
+          </div>
+
+          <div>
             <label className="label">Phone Number</label>
             <input
               className="input"
@@ -144,8 +192,13 @@ export default function BookingModal({ type = 'general', onClose }) {
             </div>
           )}
 
-          <button className="btn btn--primary btn--full" onClick={handleSubmit} style={{ marginTop: 6 }}>
-            {isCorporate ? 'Submit Enquiry →' : isMaterials ? 'Get Quote →' : 'Confirm Booking →'}
+          <button 
+            className="btn btn--primary btn--full" 
+            onClick={handleSubmit} 
+            disabled={loading}
+            style={{ marginTop: 6, opacity: loading ? 0.7 : 1 }}
+          >
+            {loading ? '⏳ Submitting...' : isCorporate ? 'Submit Enquiry →' : isMaterials ? 'Get Quote →' : 'Confirm Booking →'}
           </button>
 
           <p style={{ fontSize: 10, color: 'var(--text-light)', textAlign: 'center' }}>

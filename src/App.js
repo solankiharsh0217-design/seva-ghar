@@ -12,9 +12,13 @@ import ServicesPage from './components/services/ServicesPage';
 import BusinessPage from './components/business/BusinessPage';
 import AreasPage from './components/areas/AreasPage';
 import AboutPage from './components/about/AboutPage';
+import MyBookingsPage from './components/bookings/MyBookingsPage';
 
 // Common
 import BookingModal from './components/common/BookingModal';
+
+// Auth
+import { AuthProvider } from './context/AuthContext';
 
 // Styles
 import './styles/global.css';
@@ -53,6 +57,7 @@ function AppContent() {
           <Route path="/business" element={<BusinessPage onBooking={openBooking} />} />
           <Route path="/areas" element={<AreasPage onBooking={openBooking} />} />
           <Route path="/about" element={<AboutPage />} />
+          <Route path="/bookings" element={<MyBookingsPage />} />
         </Routes>
       </main>
 
@@ -86,8 +91,10 @@ function AppContent() {
  */
 export default function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <AuthProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AuthProvider>
   );
 }

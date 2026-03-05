@@ -8,3 +8,9 @@ root.render(
     <App />
   </React.StrictMode>
 );
+
+if (window.firebase && window.firebase.auth) {
+  window.recaptchaVerifier = new window.firebase.auth.RecaptchaVerifier('recaptcha-container', {
+    size: 'invisible'
+  });
+}
